@@ -6,6 +6,8 @@ from PIL import Image
 import pandas as pd
 import base64
 import altair as alt
+import google.generativeai as genai
+
 
 # ------------------ Configuration ------------------
 st.set_page_config(page_title="LifeLink Blood Bank", layout="wide")
@@ -62,6 +64,11 @@ def init_db():
     db.close()
 
 init_db()
+
+# ------------------ Gemini AI Setup ------------------
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+gemini_model = genai.GenerativeModel("gemini-pro")
+
 
 # ------------------ Auth & User Functions ------------------
 def signup(username, password, full_name, age, gender, contact):
@@ -392,4 +399,5 @@ else:
                     color="Gender:N"
                 )
                 st.altair_chart(chart3, use_container_width=True)
+
 
