@@ -16,7 +16,8 @@ st.set_page_config(page_title="LifeLink Blood Bank", layout="wide")
 for key, default in {
     "logged_in": False,
     "username": "",
-    "show_profile": False
+    "show_profile": False,
+    "is_admin": False
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
@@ -186,6 +187,9 @@ def display_small_logo():
         )
     except:
         pass
+# ------------------ Admin Auth ------------------
+def admin_login(username, password):
+    return username == "admin" and password == "admin123"
 
 # ------------------ Main App ------------------
 if not st.session_state.logged_in:
@@ -212,20 +216,42 @@ if not st.session_state.logged_in:
         uname = st.text_input("Username")
         pw = st.text_input("Password", type='password')
         if st.button("Login"):
-            user = login(uname, pw)
-            if user:
-                st.session_state.logged_in = True
-                st.session_state.username = uname
-                st.session_state.show_profile = False
-                st.rerun() 
-            else:
-                st.error("❌ Invalid username or password")
+
+    # ---- ADMIN LOGIN ----
+    if admin_login(uname, pw):
+        st.session_state.logged_in = True
+        st.session_state.is_admin = True
+        st.session_state.username = "ADMIN"
+        st.session_state.show_profile = False
+        st.rerun()
+
+    # ---- NORMAL USER LOGIN ----
+    user = login(uname, pw)
+    if user:
+        st.session_state.logged_in = True
+        st.session_state.is_admin = False
+        st.session_state.username = uname
+        st.session_state.show_profile = False
+        st.rerun()
+
+    else:
+        st.error("❌ Invalid username or password")
+
 else:
     display_small_logo()
     st.sidebar.success(f"Logged in as: {st.session_state.username}")
 
     st.sidebar.title("Navigation")
-    action = st.sidebar.radio("Menu", ["Home","Add Donor","Manage Donors","Search Donor","View Donors","Record Donation","Issue Blood","View Stock"])
+    if st.session_state.is_admin:
+    action = st.sidebar.radio(
+        "Admin Panel",
+        ["Admin Dashboard", "AI Insights", "Predict Shortage"]
+    )
+else:
+    action = st.sidebar.radio(
+        "Menu",
+        ["Home","Add Donor","Manage Donors","Search Donor","View Donors","Record Donation","Issue Blood","View Stock"]
+    )
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Account**")
@@ -399,5 +425,6 @@ else:
                     color="Gender:N"
                 )
                 st.altair_chart(chart3, use_container_width=True)
+
 
 
