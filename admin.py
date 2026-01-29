@@ -450,10 +450,3 @@ else:
                     color="Gender:N"
                 )
                 st.altair_chart(chart3, use_container_width=True)
-
-
-
-
-
-
-
