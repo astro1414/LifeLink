@@ -301,7 +301,6 @@ else:
         if action == "Home":
             st.markdown("<h2 style='text-align:center;'>Welcome to LifeLink Dashboard</h2>", unsafe_allow_html=True)
             st.markdown("<p style='text-align:center;'>Use the sidebar to navigate through the system.</p>", unsafe_allow_html=True)
-
         elif action == "Add Donor":
             st.subheader("Add New Donor")
             n = st.text_input("Name")
@@ -398,6 +397,32 @@ else:
             )
             st.altair_chart(chart1, use_container_width=True)
 
+        elif action == "AI Insights" and st.session_state.is_admin:
+            st.subheader("🤖 Gemini AI Insights")
+        
+            stock = view_stock()
+            df_stock = pd.DataFrame(stock, columns=["Blood Group", "Units"])
+        
+            st.write("### Current Stock Data")
+            st.dataframe(df_stock)
+        
+            prompt = f"""
+            You are an AI healthcare analyst.
+            Below is the current blood stock data.
+        
+            {df_stock}
+        
+            1. Identify blood groups at risk
+            2. Predict shortages
+            3. Give clear, actionable advice for hospital admins
+            """
+        
+            if st.button("Generate AI Insights"):
+                response = gemini_model.generate_content(prompt)
+                st.success("AI Analysis Complete")
+                st.write(response.text)
+
+
             # Donations over time
             db = connect_db()
             cursor = db.cursor()
@@ -425,6 +450,7 @@ else:
                     color="Gender:N"
                 )
                 st.altair_chart(chart3, use_container_width=True)
+
 
 
 
