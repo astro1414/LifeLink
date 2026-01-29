@@ -243,15 +243,15 @@ else:
 
     st.sidebar.title("Navigation")
     if st.session_state.is_admin:
-    action = st.sidebar.radio(
-        "Admin Panel",
-        ["Admin Dashboard", "AI Insights", "Predict Shortage"]
-    )
-else:
-    action = st.sidebar.radio(
-        "Menu",
-        ["Home","Add Donor","Manage Donors","Search Donor","View Donors","Record Donation","Issue Blood","View Stock"]
-    )
+        action = st.sidebar.radio(
+            "Admin Panel",
+            ["Admin Dashboard", "AI Insights", "Predict Shortage"]
+        )
+    else:
+        action = st.sidebar.radio(
+            "Menu",
+            ["Home","Add Donor","Manage Donors","Search Donor","View Donors","Record Donation","Issue Blood","View Stock"]
+        )
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Account**")
@@ -450,6 +450,7 @@ else:
                     color="Gender:N"
                 )
                 st.altair_chart(chart3, use_container_width=True)
+
 
 
 
