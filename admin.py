@@ -217,25 +217,25 @@ if not st.session_state.logged_in:
         pw = st.text_input("Password", type='password')
         if st.button("Login"):
 
-    # ---- ADMIN LOGIN ----
-    if admin_login(uname, pw):
-        st.session_state.logged_in = True
-        st.session_state.is_admin = True
-        st.session_state.username = "ADMIN"
-        st.session_state.show_profile = False
-        st.rerun()
-
-    # ---- NORMAL USER LOGIN ----
-    user = login(uname, pw)
-    if user:
-        st.session_state.logged_in = True
-        st.session_state.is_admin = False
-        st.session_state.username = uname
-        st.session_state.show_profile = False
-        st.rerun()
-
-    else:
-        st.error("❌ Invalid username or password")
+            # ---- ADMIN LOGIN ----
+            if admin_login(uname, pw):
+                st.session_state.logged_in = True
+                st.session_state.is_admin = True
+                st.session_state.username = "ADMIN"
+                st.session_state.show_profile = False
+                st.rerun()
+        
+            # ---- NORMAL USER LOGIN ----
+            user = login(uname, pw)
+            if user:
+                st.session_state.logged_in = True
+                st.session_state.is_admin = False
+                st.session_state.username = uname
+                st.session_state.show_profile = False
+                st.rerun()
+        
+            else:
+                st.error("❌ Invalid username or password")
 
 else:
     display_small_logo()
@@ -450,6 +450,7 @@ else:
                     color="Gender:N"
                 )
                 st.altair_chart(chart3, use_container_width=True)
+
 
 
 
