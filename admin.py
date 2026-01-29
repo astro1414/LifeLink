@@ -8,7 +8,6 @@ import base64
 import altair as alt
 import google.generativeai as genai
 
-
 # ------------------ Configuration ------------------
 st.set_page_config(page_title="LifeLink Blood Bank", layout="wide")
 
@@ -67,17 +66,22 @@ def init_db():
 init_db()
 
 # ------------------ Gemini AI Setup ------------------
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-gemini_model = genai.GenerativeModel("gemini-pro")
-
+try:
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    gemini_model = genai.GenerativeModel("gemini-pro")
+except Exception as e:
+    gemini_model = None
+    st.warning("⚠️ Gemini AI not configured. Admin AI features will be disabled.")
 
 # ------------------ Auth & User Functions ------------------
 def signup(username, password, full_name, age, gender, contact):
     db = connect_db()
     cursor = db.cursor()
     try:
-        cursor.execute("INSERT INTO Users (Username, Password, FullName, Age, Gender, Contact) VALUES (?, ?, ?, ?, ?, ?)",
-                       (username, hash_password(password), full_name, age, gender, contact))
+        cursor.execute(
+            "INSERT INTO Users (Username, Password, FullName, Age, Gender, Contact) VALUES (?, ?, ?, ?, ?, ?)",
+            (username, hash_password(password), full_name, age, gender, contact)
+        )
         db.commit()
         st.success("✅ Signup successful!")
     except sqlite3.IntegrityError:
@@ -87,8 +91,7 @@ def signup(username, password, full_name, age, gender, contact):
 def login(username, password):
     db = connect_db()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM Users WHERE Username=? AND Password=?",
-                   (username, hash_password(password)))
+    cursor.execute("SELECT * FROM Users WHERE Username=? AND Password=?", (username, hash_password(password)))
     user = cursor.fetchone()
     db.close()
     return user
@@ -187,6 +190,7 @@ def display_small_logo():
         )
     except:
         pass
+
 # ------------------ Admin Auth ------------------
 def admin_login(username, password):
     return username == "admin" and password == "admin123"
@@ -312,7 +316,6 @@ else:
                 add_donor(n, a, g, bg, ct)
 
         elif action == "Manage Donors":
-            st.subheader("Manage Donors")
             donors = view_all_donors()
             if donors:
                 df = pd.DataFrame(donors, columns=["ID","Name","Age","Gender","Blood Group","Contact"])
@@ -399,54 +402,31 @@ else:
 
         elif action == "AI Insights" and st.session_state.is_admin:
             st.subheader("🤖 Gemini AI Insights")
-        
-            stock = view_stock()
-            df_stock = pd.DataFrame(stock, columns=["Blood Group", "Units"])
-        
-            st.write("### Current Stock Data")
-            st.dataframe(df_stock)
-        
-            prompt = f"""
-            You are an AI healthcare analyst.
-            Below is the current blood stock data.
-        
-            {df_stock}
-        
-            1. Identify blood groups at risk
-            2. Predict shortages
-            3. Give clear, actionable advice for hospital admins
-            """
-        
-            if st.button("Generate AI Insights"):
-                response = gemini_model.generate_content(prompt)
-                st.success("AI Analysis Complete")
-                st.write(response.text)
+            if gemini_model is None:
+                st.warning("⚠️ AI model not configured. Check your GEMINI_API_KEY in secrets.")
+            else:
+                stock = view_stock()
+                df_stock = pd.DataFrame(stock, columns=["Blood Group", "Units"])
 
+                st.write("### Current Stock Data")
+                st.dataframe(df_stock)
 
-            # Donations over time
-            db = connect_db()
-            cursor = db.cursor()
-            cursor.execute("SELECT Date, Units FROM Transactions WHERE Type='Donation'")
-            data = cursor.fetchall()
-            db.close()
-            if data:
-                df_tx = pd.DataFrame(data, columns=["Date","Units"])
-                df_tx['Date'] = pd.to_datetime(df_tx['Date'])
-                df_grouped = df_tx.groupby(df_tx['Date'].dt.date)['Units'].sum().reset_index()
-                st.write("### Donations Over Time")
-                chart2 = alt.Chart(df_grouped).mark_line(point=True).encode(
-                    x='Date',
-                    y='Units'
-                )
-                st.altair_chart(chart2, use_container_width=True)
+                prompt = f"""
+                You are an AI healthcare analyst.
+                Below is the current blood stock data.
 
-            # Donor gender pie chart
-            donors = view_all_donors()
-            if donors:
-                df_d = pd.DataFrame(donors, columns=["ID","Name","Age","Gender","Blood Group","Contact"])
-                st.write("### Donor Gender Distribution")
-                chart3 = alt.Chart(df_d).mark_arc().encode(
-                    theta=alt.Theta(field="Gender", type="quantitative", aggregate="count"),
-                    color="Gender:N"
-                )
-                st.altair_chart(chart3, use_container_width=True)
+                {df_stock}
+
+                1. Identify blood groups at risk
+                2. Predict shortages
+                3. Give clear, actionable advice for hospital admins
+                """
+
+                if st.button("Generate AI Insights"):
+                    try:
+                        response = gemini_model.generate_content(prompt)
+                        st.success("AI Analysis Complete")
+                        st.write(response.text)
+                    except Exception as e:
+                        st.error("❌ AI call failed. Check your API key and model name.")
+                        st.write(str(e))
