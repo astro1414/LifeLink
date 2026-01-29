@@ -173,14 +173,14 @@ def image_to_base64(img_path):
 
 def display_main_logo():
     try:
-        logo = Image.open(r"C:\Users\ashis\OneDrive\Desktop\sanika\Lifelink\logo.jpeg")
+        logo = Image.open("assets/logo.jpeg")
         st.image(logo, width=300)
     except:
         st.warning("⚠️ Logo not found.")
 
 def display_small_logo():
     try:
-        b64 = image_to_base64(r"C:\Users\ashis\OneDrive\Desktop\sanika\Lifelink\logo.jpeg")
+        b64 = image_to_base64("assets/logo.jpeg")
         st.markdown(
             f"<img src='data:image/png;base64,{b64}' style='position:fixed; top:80px; right:10px; width:60px; z-index:100;'>",
             unsafe_allow_html=True
@@ -450,6 +450,7 @@ else:
                     color="Gender:N"
                 )
                 st.altair_chart(chart3, use_container_width=True)
+
 
 
 
